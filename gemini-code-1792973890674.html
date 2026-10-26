@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pomodoro Timer - Teknik Belajar & Kerja</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 text-slate-100">
+
+    <!-- Container Utama -->
+    <div class="w-full max-w-md bg-slate-800/80 backdrop-blur-md border border-slate-700 p-6 sm:p-8 rounded-3xl shadow-2xl text-center">
+        
+        <h1 class="text-xl font-bold tracking-wide text-slate-200 mb-6">🍅 Pomodoro Timer</h1>
+
+        <!-- Tombol Pilihan Mode -->
+        <div class="flex justify-center gap-2 bg-slate-900/60 p-1.5 rounded-2xl mb-8">
+            <button onclick="setMode('fokus', 25)" id="btn-fokus" class="flex-1 py-2 text-xs font-semibold rounded-xl transition bg-blue-600 text-white cursor-pointer shadow-sm">Fokus</button>
+            <button onclick="setMode('short', 5)" id="btn-short" class="flex-1 py-2 text-xs font-semibold rounded-xl transition text-slate-400 hover:text-white cursor-pointer">Istirahat Pendek</button>
+            <button onclick="setMode('long', 15)" id="btn-long" class="flex-1 py-2 text-xs font-semibold rounded-xl transition text-slate-400 hover:text-white cursor-pointer">Istirahat Panjang</button>
+        </div>
+
+        <!-- Tampilan Hitung Mundur (Timer Display) -->
+        <div class="my-8">
+            <div id="timerDisplay" class="text-6xl sm:text-7xl font-extrabold tracking-wider text-white font-mono">
+                25:00
+            </div>
+            <p id="modeStatus" class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-medium">Waktu Fokus Dimulai</p>
+        </div>
+
+        <!-- Kontrol Tombol (Start, Pause, Reset) -->
+        <div class="flex items-center justify-center gap-3">
+            <button id="btnStartPause" onclick="toggleTimer()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-3.5 px-6 rounded-2xl transition cursor-pointer shadow-lg shadow-blue-600/30">
+                ▶ Mulai
+            </button>
+            <button onclick="resetTimer()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm font-bold py-3.5 px-5 rounded-2xl transition cursor-pointer">
+                🔄 Reset
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Footer Info -->
+    <p class="text-[11px] text-slate-500 mt-6 text-center">Gunakan Teknik Pomodoro untuk menjaga fokus & mencegah kelelahan otak.</p>
+
+    <script>
+        let timerInterval = null;
+        let totalSeconds = 25 * 60; // Default 25 menit
+        let remainingSeconds = totalSeconds;
+        let isRunning = false;
+        let currentMode = 'fokus';
+
+        const display = document.getElementById('timerDisplay');
+        const startPauseBtn = document.getElementById('btnStartPause');
+        const statusText = document.getElementById('modeStatus');
+
+        // Mengatur Mode Timer
+        function setMode(mode, minutes) {
+            clearInterval(timerInterval);
+            isRunning = false;
+            currentMode = mode;
+            totalSeconds = minutes * 60;
+            remainingSeconds = totalSeconds;
+            updateDisplay();
+            updateButtonUI();
+            
+            // Ubah gaya tombol aktif
+            document.getElementById('btn-fokus').className = mode === 'fokus' ? 'flex-1 py-2 text-xs font-semibold rounded-xl transition bg-blue-600 text-white shadow-sm' : 'flex-1 py-2 text-xs font-semibold rounded-xl transition text-slate-400 hover:text-white';
+            document.getElementById('btn-short').className = mode === 'short' ? 'flex-1 py-2 text-xs font-semibold rounded-xl transition bg-emerald-600 text-white shadow-sm' : 'flex-1 py-2 text-xs font-semibold rounded-xl transition text-slate-400 hover:text-white';
+            document.getElementById('btn-long').className = mode === 'long' ? 'flex-1 py-2 text-xs font-semibold rounded-xl transition bg-purple-600 text-white shadow-sm' : 'flex-1 py-2 text-xs font-semibold rounded-xl transition text-slate-400 hover:text-white';
+
+            // Ubah warna latar tombol utama & teks status
+            if(mode === 'fokus') {
+                startPauseBtn.className = "flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-3.5 px-6 rounded-2xl transition cursor-pointer shadow-lg shadow-blue-600/30";
+                statusText.innerText = "Waktu Fokus Dimulai";
+            } else if(mode === 'short') {
+                startPauseBtn.className = "flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-3.5 px-6 rounded-2xl transition cursor-pointer shadow-lg shadow-emerald-600/30";
+                statusText.innerText = "Waktu Istirahat Pendek";
+            } else {
+                startPauseBtn.className = "flex-1 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold py-3.5 px-6 rounded-2xl transition cursor-pointer shadow-lg shadow-purple-600/30";
+                statusText.innerText = "Waktu Istirahat Panjang";
+            }
+        }
+
+        // Format angka ke format MM:SS
+        function updateDisplay() {
+            const minutes = Math.floor(remainingSeconds / 60);
+            const seconds = remainingSeconds % 60;
+            display.innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.title = `(${display.innerText}) Pomodoro Timer`;
+        }
+
+        // Jalankan / Jeda Timer
+        function toggleTimer() {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                startPauseBtn.innerText = "▶ Lanjutkan";
+            } else {
+                if (remainingSeconds <= 0) remainingSeconds = totalSeconds;
+                isRunning = true;
+                startPauseBtn.innerText = "⏸ Jeda";
+                
+                timerInterval = setInterval(() => {
+                    if (remainingSeconds > 0) {
+                        remainingSeconds--;
+                        updateDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        startPauseBtn.innerText = "▶ Mulai";
+                        alert(currentMode === 'fokus' ? "Waktu fokus selesai! Saatnya beristirahat." : "Waktu istirahat selesai! Mari fokus kembali.");
+                    }
+                }, 1000);
+            }
+        }
+
+        // Reset Timer
+        function resetTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            remainingSeconds = totalSeconds;
+            updateDisplay();
+            startPauseBtn.innerText = "▶ Mulai";
+        }
+
+        function updateButtonUI() {
+            startPauseBtn.innerText = "▶ Mulai";
+        }
+
+        updateDisplay();
+    </script>
+</body>
+</html>
