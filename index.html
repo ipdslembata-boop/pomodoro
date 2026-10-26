@@ -3,136 +3,404 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pomodoro Timer - Teknik Belajar & Kerja</title>
+    <title>Pomodoro Study</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts: Caveat (Handwritten) & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #0f172a; }
+        body { font-family: 'Inter', sans-serif; }
+        .font-brand { font-family: 'Caveat', cursive; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col items-center justify-center p-4 text-slate-100">
+<body id="bodyBg" class="min-h-screen flex flex-col justify-between p-4 sm:p-6 text-white transition-colors duration-500 bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900">
 
-    <!-- Container Utama -->
-    <div class="w-full max-w-md bg-slate-800/80 backdrop-blur-md border border-slate-700 p-6 sm:p-8 rounded-3xl shadow-2xl text-center">
+    <!-- TOP HEADER -->
+    <header class="flex justify-between items-center w-full max-w-4xl mx-auto">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-brand font-bold tracking-wide text-white drop-shadow">Pomodoro Study</h1>
+        </div>
+        <div class="flex items-center gap-2">
+            <!-- Tombol Fullscreen -->
+            <button onclick="toggleFullscreen()" title="Layar Penuh" class="bg-white/10 hover:bg-white/20 p-2.5 rounded-full backdrop-blur-md transition cursor-pointer text-white">
+                <svg id="iconFull" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0-4h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+            </button>
+            <!-- Tombol Settings -->
+            <button onclick="openSettings()" title="Pengaturan" class="bg-white/10 hover:bg-white/20 p-2.5 rounded-full backdrop-blur-md transition cursor-pointer text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT (TIMER) -->
+    <main class="flex flex-col items-center justify-center my-auto py-10">
         
-        <h1 class="text-xl font-bold tracking-wide text-slate-200 mb-6">🍅 Pomodoro Timer</h1>
-
-        <!-- Tombol Pilihan Mode -->
-        <div class="flex justify-center gap-2 bg-slate-900/60 p-1.5 rounded-2xl mb-8">
-            <button onclick="setMode('fokus', 25)" id="btn-fokus" class="flex-1 py-2 text-xs font-semibold rounded-xl transition bg-blue-600 text-white cursor-pointer shadow-sm">Fokus</button>
-            <button onclick="setMode('short', 5)" id="btn-short" class="flex-1 py-2 text-xs font-semibold rounded-xl transition text-slate-400 hover:text-white cursor-pointer">Istirahat Pendek</button>
-            <button onclick="setMode('long', 15)" id="btn-long" class="flex-1 py-2 text-xs font-semibold rounded-xl transition text-slate-400 hover:text-white cursor-pointer">Istirahat Panjang</button>
+        <!-- Pilihan Mode (Pill Tabs) -->
+        <div class="flex items-center gap-1.5 bg-black/20 p-1 rounded-full backdrop-blur-md mb-8 shadow-inner border border-white/10">
+            <button onclick="switchMode('pomodoro')" id="btn-pomodoro" class="px-5 py-2 text-xs font-semibold rounded-full transition cursor-pointer bg-white text-slate-900 shadow">pomodoro</button>
+            <button onclick="switchMode('short')" id="btn-short" class="px-5 py-2 text-xs font-semibold rounded-full transition cursor-pointer text-white/80 hover:text-white">short break</button>
+            <button onclick="switchMode('long')" id="btn-long" class="px-5 py-2 text-xs font-semibold rounded-full transition cursor-pointer text-white/80 hover:text-white">long break</button>
         </div>
 
-        <!-- Tampilan Hitung Mundur (Timer Display) -->
-        <div class="my-8">
-            <div id="timerDisplay" class="text-6xl sm:text-7xl font-extrabold tracking-wider text-white font-mono">
+        <!-- Tampilan Angka Waktu -->
+        <div class="my-2">
+            <h2 id="timerDisplay" class="text-7xl sm:text-9xl font-bold tracking-wider font-mono drop-shadow-md select-none">
                 25:00
+            </h2>
+        </div>
+
+        <!-- Indikator Anti-Sleep & Status -->
+        <div id="wakeLockStatus" class="text-[11px] text-white/60 mb-8 flex items-center gap-1.5 hidden">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Layar tetap menyala aktif
+        </div>
+
+        <!-- Tombol Kontrol Bawah -->
+        <div class="flex items-center gap-3">
+            <button id="startPauseBtn" onclick="toggleTimer()" class="bg-white hover:bg-slate-100 text-slate-900 font-bold px-10 py-3.5 rounded-full text-sm sm:text-base tracking-wide transition shadow-lg cursor-pointer transform active:scale-95">
+                mulai
+            </button>
+            <button onclick="resetTimer()" title="Reset" class="bg-white/10 hover:bg-white/20 backdrop-blur-md p-3.5 rounded-full transition cursor-pointer text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="text-center text-xs text-white/50">
+        <p>Pomodoro Study — Fokus dan Jaga Semangat Belajarmu.</p>
+    </footer>
+
+    <!-- MODAL PENGATURAN (SETTINGS) -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 text-slate-100 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-800 overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <!-- Modal Header -->
+            <div class="flex justify-between items-center p-5 border-b border-slate-800">
+                <h3 class="text-base font-bold text-white">Pengaturan Aplikasi</h3>
+                <button onclick="closeSettings()" class="text-slate-400 hover:text-white p-1 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
             </div>
-            <p id="modeStatus" class="text-xs text-slate-400 mt-2 uppercase tracking-widest font-medium">Waktu Fokus Dimulai</p>
-        </div>
 
-        <!-- Kontrol Tombol (Start, Pause, Reset) -->
-        <div class="flex items-center justify-center gap-3">
-            <button id="btnStartPause" onclick="toggleTimer()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-3.5 px-6 rounded-2xl transition cursor-pointer shadow-lg shadow-blue-600/30">
-                ▶ Mulai
-            </button>
-            <button onclick="resetTimer()" class="bg-slate-700 hover:bg-slate-600 text-slate-300 text-sm font-bold py-3.5 px-5 rounded-2xl transition cursor-pointer">
-                🔄 Reset
-            </button>
-        </div>
+            <!-- Modal Body (Tabs & Content) -->
+            <div class="flex flex-col sm:flex-row flex-1 overflow-hidden">
+                <!-- Sidebar Tabs -->
+                <div class="flex sm:flex-col gap-1 p-4 bg-slate-950/50 border-b sm:border-b-0 sm:border-r border-slate-800 shrink-0 overflow-x-auto">
+                    <button onclick="switchTab('general')" id="tab-general" class="px-4 py-2 text-xs font-semibold rounded-xl text-left transition bg-slate-800 text-white cursor-pointer">General</button>
+                    <button onclick="switchTab('timers')" id="tab-timers" class="px-4 py-2 text-xs font-semibold rounded-xl text-left transition text-slate-400 hover:text-white cursor-pointer">Timers</button>
+                    <button onclick="switchTab('sounds')" id="tab-sounds" class="px-4 py-2 text-xs font-semibold rounded-xl text-left transition text-slate-400 hover:text-white cursor-pointer">Sounds</button>
+                </div>
 
+                <!-- Tab Contents -->
+                <div class="p-6 flex-1 overflow-y-auto space-y-6">
+                    
+                    <!-- 1. GENERAL TAB -->
+                    <div id="content-general" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-2">Pilih Tema Tampilan</label>
+                            <select id="selectTheme" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs text-white outline-none focus:border-indigo-500">
+                                <option value="seoul">🌆 Seoul Sunset (Ungu Senja)</option>
+                                <option value="coffee">☕ Warm Coffee (Vintage Hangat)</option>
+                                <option value="sage">🌿 Sage Green (Hijau Rileks)</option>
+                                <option value="dark">🌑 Classic Dark (Gelap Minimalis)</option>
+                                <option value="light">☀️ Classic Light (Terang Minimalis)</option>
+                                <option value="nordic">🌊 Nordic Blue (Biru Kertas)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- 2. TIMERS TAB -->
+                    <div id="content-timers" class="space-y-4 hidden">
+                        <div class="grid grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-400 mb-1">Pomodoro</label>
+                                <input type="number" id="inputPomodoro" min="1" max="120" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white text-center font-bold">
+                                <span class="text-[10px] text-slate-500 block text-center mt-1">menit</span>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-400 mb-1">Short Break</label>
+                                <input type="number" id="inputShort" min="1" max="60" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white text-center font-bold">
+                                <span class="text-[10px] text-slate-500 block text-center mt-1">menit</span>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-400 mb-1">Long Break</label>
+                                <input type="number" id="inputLong" min="1" max="60" class="w-full bg-slate-800 border border-slate-700 rounded-xl p-2.5 text-xs text-white text-center font-bold">
+                                <span class="text-[10px] text-slate-500 block text-center mt-1">menit</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. SOUNDS TAB -->
+                    <div id="content-sounds" class="space-y-4 hidden">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-2">Suara Alarm</label>
+                            <div class="flex gap-2">
+                                <select id="selectSound" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl p-3 text-xs text-white outline-none">
+                                    <option value="bell">Bell Lonceng Lembut</option>
+                                    <option value="beep">Digital Beep</option>
+                                    <option value="chime">Chime Nada Gantung</option>
+                                </select>
+                                <button onclick="testSound()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 px-4 rounded-xl text-xs font-semibold text-white cursor-pointer">Tes</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-400 mb-2">Volume Alarm (<span id="volLabel">80</span>%)</label>
+                            <input type="range" id="inputVolume" min="0" max="100" value="80" oninput="document.getElementById('volLabel').innerText=this.value" class="w-full accent-indigo-500 cursor-pointer">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="flex justify-between items-center p-4 bg-slate-950 border-t border-slate-800">
+                <button onclick="resetSettingsToDefault()" class="text-xs text-rose-400 hover:text-rose-300 font-semibold px-3 py-2 cursor-pointer">Reset All</button>
+                <div class="flex gap-2">
+                    <button onclick="closeSettings()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold px-4 py-2.5 rounded-xl transition cursor-pointer">Close</button>
+                    <button onclick="saveSettings()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-bold px-5 py-2.5 rounded-xl transition cursor-pointer shadow">Save changes</button>
+                </div>
+            </div>
+
+        </div>
     </div>
 
-    <!-- Footer Info -->
-    <p class="text-[11px] text-slate-500 mt-6 text-center">Gunakan Teknik Pomodoro untuk menjaga fokus & mencegah kelelahan otak.</p>
-
+    <!-- JAVASCRIPT LOGIC -->
     <script>
-        let timerInterval = null;
-        let totalSeconds = 25 * 60; // Default 25 menit
-        let remainingSeconds = totalSeconds;
+        // Konfigurasi Default & State
+        let settings = JSON.parse(localStorage.getItem('pomodoro_settings')) || {
+            pomodoroTime: 25,
+            shortBreakTime: 5,
+            longBreakTime: 15,
+            theme: 'seoul',
+            soundType: 'bell',
+            volume: 80
+        };
+
+        let currentMode = 'pomodoro'; // pomodoro, short, long
+        let timeLeft = settings.pomodoroTime * 60;
+        let timerId = null;
         let isRunning = false;
-        let currentMode = 'fokus';
+        let wakeLock = null; // Wake Lock API untuk Anti-Sleep
 
-        const display = document.getElementById('timerDisplay');
-        const startPauseBtn = document.getElementById('btnStartPause');
-        const statusText = document.getElementById('modeStatus');
+        // Inisialisasi Tema & Durasi saat dimuat
+        applyTheme(settings.theme);
+        resetTimer();
 
-        // Mengatur Mode Timer
-        function setMode(mode, minutes) {
-            clearInterval(timerInterval);
-            isRunning = false;
-            currentMode = mode;
-            totalSeconds = minutes * 60;
-            remainingSeconds = totalSeconds;
-            updateDisplay();
-            updateButtonUI();
-            
-            // Ubah gaya tombol aktif
-            document.getElementById('btn-fokus').className = mode === 'fokus' ? 'flex-1 py-2 text-xs font-semibold rounded-xl transition bg-blue-600 text-white shadow-sm' : 'flex-1 py-2 text-xs font-semibold rounded-xl transition text-slate-400 hover:text-white';
-            document.getElementById('btn-short').className = mode === 'short' ? 'flex-1 py-2 text-xs font-semibold rounded-xl transition bg-emerald-600 text-white shadow-sm' : 'flex-1 py-2 text-xs font-semibold rounded-xl transition text-slate-400 hover:text-white';
-            document.getElementById('btn-long').className = mode === 'long' ? 'flex-1 py-2 text-xs font-semibold rounded-xl transition bg-purple-600 text-white shadow-sm' : 'flex-1 py-2 text-xs font-semibold rounded-xl transition text-slate-400 hover:text-white';
-
-            // Ubah warna latar tombol utama & teks status
-            if(mode === 'fokus') {
-                startPauseBtn.className = "flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold py-3.5 px-6 rounded-2xl transition cursor-pointer shadow-lg shadow-blue-600/30";
-                statusText.innerText = "Waktu Fokus Dimulai";
-            } else if(mode === 'short') {
-                startPauseBtn.className = "flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold py-3.5 px-6 rounded-2xl transition cursor-pointer shadow-lg shadow-emerald-600/30";
-                statusText.innerText = "Waktu Istirahat Pendek";
-            } else {
-                startPauseBtn.className = "flex-1 bg-purple-600 hover:bg-purple-700 text-white text-sm font-bold py-3.5 px-6 rounded-2xl transition cursor-pointer shadow-lg shadow-purple-600/30";
-                statusText.innerText = "Waktu Istirahat Panjang";
+        // --- WAKE LOCK API (ANTI-SLEEP) ---
+        async function requestWakeLock() {
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    document.getElementById('wakeLockStatus').classList.remove('hidden');
+                    wakeLock.addEventListener('release', () => {
+                        document.getElementById('wakeLockStatus').classList.add('hidden');
+                    });
+                } catch (err) {
+                    console.error(`${err.name}, ${err.message}`);
+                }
             }
         }
 
-        // Format angka ke format MM:SS
-        function updateDisplay() {
-            const minutes = Math.floor(remainingSeconds / 60);
-            const seconds = remainingSeconds % 60;
-            display.innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            document.title = `(${display.innerText}) Pomodoro Timer`;
+        function releaseWakeLock() {
+            if (wakeLock !== null) {
+                wakeLock.release().then(() => {
+                    wakeLock = null;
+                    document.getElementById('wakeLockStatus').classList.add('hidden');
+                });
+            }
         }
 
-        // Jalankan / Jeda Timer
+        // --- AUDIO / SOUND ENGINE ---
+        function playSound() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const gainNode = audioCtx.createGain();
+                const vol = (settings.volume / 100);
+                gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+                gainNode.connect(audioCtx.destination);
+
+                if (settings.soundType === 'bell') {
+                    const osc = audioCtx.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+                    osc.connect(gainNode);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 1.2);
+                } else if (settings.soundType === 'beep') {
+                    const osc = audioCtx.createOscillator();
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                    osc.connect(gainNode);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else { // chime
+                    const osc1 = audioCtx.createOscillator();
+                    const osc2 = audioCtx.createOscillator();
+                    osc1.type = 'sine'; osc2.type = 'triangle';
+                    osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc2.frequency.setValueAtTime(659.25, audioCtx.currentTime); // E5
+                    osc1.connect(gainNode); osc2.connect(gainNode);
+                    osc1.start(); osc2.start();
+                    osc1.stop(audioCtx.currentTime + 1.0);
+                    osc2.stop(audioCtx.currentTime + 1.0);
+                }
+            } catch (e) {
+                console.log('Audio error:', e);
+            }
+        }
+
+        function testSound() {
+            playSound();
+        }
+
+        // --- TIMER LOGIC ---
+        function switchMode(mode) {
+            clearInterval(timerId);
+            isRunning = false;
+            currentMode = mode;
+            document.getElementById('startPauseBtn').innerText = 'mulai';
+            releaseWakeLock();
+
+            // Styling tombol mode
+            ['pomodoro', 'short', 'long'].forEach(m => {
+                const btn = document.getElementById(`btn-${m}`);
+                if(m === mode) {
+                    btn.className = 'px-5 py-2 text-xs font-semibold rounded-full transition cursor-pointer bg-white text-slate-900 shadow';
+                } else {
+                    btn.className = 'px-5 py-2 text-xs font-semibold rounded-full transition cursor-pointer text-white/80 hover:text-white';
+                }
+            });
+
+            if (mode === 'pomodoro') timeLeft = settings.pomodoroTime * 60;
+            else if (mode === 'short') timeLeft = settings.shortBreakTime * 60;
+            else if (mode === 'long') timeLeft = settings.longBreakTime * 60;
+
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            const formatted = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.getElementById('timerDisplay').innerText = formatted;
+            document.title = `(${formatted}) Pomodoro Study`;
+        }
+
         function toggleTimer() {
+            const btn = document.getElementById('startPauseBtn');
             if (isRunning) {
-                clearInterval(timerInterval);
+                clearInterval(timerId);
                 isRunning = false;
-                startPauseBtn.innerText = "▶ Lanjutkan";
+                btn.innerText = 'lanjutkan';
+                releaseWakeLock();
             } else {
-                if (remainingSeconds <= 0) remainingSeconds = totalSeconds;
+                if (timeLeft <= 0) {
+                    if (currentMode === 'pomodoro') timeLeft = settings.pomodoroTime * 60;
+                    else if (currentMode === 'short') timeLeft = settings.shortBreakTime * 60;
+                    else timeLeft = settings.longBreakTime * 60;
+                }
                 isRunning = true;
-                startPauseBtn.innerText = "⏸ Jeda";
-                
-                timerInterval = setInterval(() => {
-                    if (remainingSeconds > 0) {
-                        remainingSeconds--;
+                btn.innerText = 'jeda';
+                requestWakeLock(); // Aktifkan anti-sleep
+
+                timerId = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
                         updateDisplay();
                     } else {
-                        clearInterval(timerInterval);
+                        clearInterval(timerId);
                         isRunning = false;
-                        startPauseBtn.innerText = "▶ Mulai";
-                        alert(currentMode === 'fokus' ? "Waktu fokus selesai! Saatnya beristirahat." : "Waktu istirahat selesai! Mari fokus kembali.");
+                        btn.innerText = 'mulai';
+                        releaseWakeLock();
+                        playSound();
+                        alert(currentMode === 'pomodoro' ? 'Waktu fokus selesai! Saatnya beristirahat.' : 'Waktu istirahat selesai! Mari fokus kembali.');
                     }
                 }, 1000);
             }
         }
 
-        // Reset Timer
         function resetTimer() {
-            clearInterval(timerInterval);
+            clearInterval(timerId);
             isRunning = false;
-            remainingSeconds = totalSeconds;
-            updateDisplay();
-            startPauseBtn.innerText = "▶ Mulai";
+            document.getElementById('startPauseBtn').innerText = 'mulai';
+            releaseWakeLock();
+            switchMode(currentMode);
         }
 
-        function updateButtonUI() {
-            startPauseBtn.innerText = "▶ Mulai";
+        // --- THEME ENGINE ---
+        function applyTheme(theme) {
+            const body = document.getElementById('bodyBg');
+            if (theme === 'seoul') {
+                body.className = 'min-h-screen flex flex-col justify-between p-4 sm:p-6 text-white transition-colors duration-500 bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900';
+            } else if (theme === 'coffee') {
+                body.className = 'min-h-screen flex flex-col justify-between p-4 sm:p-6 text-white transition-colors duration-500 bg-gradient-to-br from-stone-900 via-amber-950 to-neutral-900';
+            } else if (theme === 'sage') {
+                body.className = 'min-h-screen flex flex-col justify-between p-4 sm:p-6 text-white transition-colors duration-500 bg-gradient-to-br from-emerald-950 via-teal-900 to-slate-900';
+            } else if (theme === 'dark') {
+                body.className = 'min-h-screen flex flex-col justify-between p-4 sm:p-6 text-white transition-colors duration-500 bg-slate-950';
+            } else if (theme === 'light') {
+                body.className = 'min-h-screen flex flex-col justify-between p-4 sm:p-6 text-slate-800 transition-colors duration-500 bg-slate-100';
+            } else if (theme === 'nordic') {
+                body.className = 'min-h-screen flex flex-col justify-between p-4 sm:p-6 text-white transition-colors duration-500 bg-gradient-to-br from-sky-950 via-blue-950 to-slate-900';
+            }
         }
 
-        updateDisplay();
+        // --- FULLSCREEN ---
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => alert(err.message));
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        // --- MODAL SETTINGS & TABS ---
+        function openSettings() {
+            document.getElementById('selectTheme').value = settings.theme;
+            document.getElementById('inputPomodoro').value = settings.pomodoroTime;
+            document.getElementById('inputShort').value = settings.shortBreakTime;
+            document.getElementById('inputLong').value = settings.longBreakTime;
+            document.getElementById('selectSound').value = settings.soundType;
+            document.getElementById('inputVolume').value = settings.volume;
+            document.getElementById('volLabel').innerText = settings.volume;
+
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettings() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function switchTab(tabName) {
+            ['general', 'timers', 'sounds'].forEach(t => {
+                document.getElementById(`content-${t}`).classList.add('hidden');
+                document.getElementById(`tab-${t}`).className = 'px-4 py-2 text-xs font-semibold rounded-xl text-left transition text-slate-400 hover:text-white cursor-pointer';
+            });
+            document.getElementById(`content-${tabName}`).classList.remove('hidden');
+            document.getElementById(`tab-${tabName}`).className = 'px-4 py-2 text-xs font-semibold rounded-xl text-left transition bg-slate-800 text-white cursor-pointer';
+        }
+
+        function saveSettings() {
+            settings.theme = document.getElementById('selectTheme').value;
+            settings.pomodoroTime = parseInt(document.getElementById('inputPomodoro').value) || 25;
+            settings.shortBreakTime = parseInt(document.getElementById('inputShort').value) || 5;
+            settings.longBreakTime = parseInt(document.getElementById('inputLong').value) || 15;
+            settings.soundType = document.getElementById('selectSound').value;
+            settings.volume = parseInt(document.getElementById('inputVolume').value) || 80;
+
+            localStorage.setItem('pomodoro_settings', JSON.stringify(settings));
+            applyTheme(settings.theme);
+            resetTimer();
+            closeSettings();
+        }
+
+        function resetSettingsToDefault() {
+            if(confirm('Kembalikan pengaturan ke awal?')) {
+                localStorage.removeItem('pomodoro_settings');
+                location.reload();
+            }
+        }
     </script>
 </body>
 </html>
