@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pomodoro Study</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -11,17 +11,19 @@
     <style>
         body { font-family: 'Inter', sans-serif; }
         .font-brand { font-family: 'Caveat', cursive; }
+        /* Kelas untuk Zen Mode (Fullscreen alternatif khusus iPhone/Mobile) */
+        body.zen-mode header, body.zen-mode footer { display: none !important; }
     </style>
 </head>
 <body id="bodyBg" class="min-h-screen flex flex-col justify-between p-4 sm:p-6 text-white transition-colors duration-500 bg-gradient-to-br from-indigo-950 via-purple-900 to-slate-900">
 
     <!-- TOP HEADER -->
-    <header class="flex justify-between items-center w-full max-w-4xl mx-auto">
+    <header class="flex justify-between items-center w-full max-w-4xl mx-auto transition-all">
         <div>
             <h1 class="text-2xl sm:text-3xl font-brand font-bold tracking-wide text-white drop-shadow">Pomodoro Study</h1>
         </div>
         <div class="flex items-center gap-2">
-            <!-- Tombol Fullscreen -->
+            <!-- Tombol Fullscreen / Zen Mode -->
             <button onclick="toggleFullscreen()" title="Layar Penuh" class="bg-white/10 hover:bg-white/20 p-2.5 rounded-full backdrop-blur-md transition cursor-pointer text-white">
                 <svg id="iconFull" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5v4m0-4h-4m4 4l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
             </button>
@@ -33,8 +35,13 @@
     </header>
 
     <!-- MAIN CONTENT (TIMER) -->
-    <main class="flex flex-col items-center justify-center my-auto py-10">
+    <main class="flex flex-col items-center justify-center my-auto py-10 relative">
         
+        <!-- Tombol Keluar Zen Mode (Hanya muncul saat mode Zen aktif di HP) -->
+        <button id="exitZenBtn" onclick="toggleFullscreen()" class="absolute top-[-40px] bg-white/20 hover:bg-white/30 text-white text-[11px] px-3 py-1 rounded-full backdrop-blur-md hidden cursor-pointer transition">
+            ✕ Keluar Layar Penuh
+        </button>
+
         <!-- Pilihan Mode (Pill Tabs) -->
         <div class="flex items-center gap-1.5 bg-black/20 p-1 rounded-full backdrop-blur-md mb-8 shadow-inner border border-white/10">
             <button onclick="switchMode('pomodoro')" id="btn-pomodoro" class="px-5 py-2 text-xs font-semibold rounded-full transition cursor-pointer bg-white text-slate-900 shadow">pomodoro</button>
@@ -83,19 +90,16 @@
                 </button>
             </div>
 
-            <!-- Modal Body (Tabs & Content) -->
+            <!-- Modal Body -->
             <div class="flex flex-col sm:flex-row flex-1 overflow-hidden">
-                <!-- Sidebar Tabs -->
                 <div class="flex sm:flex-col gap-1 p-4 bg-slate-950/50 border-b sm:border-b-0 sm:border-r border-slate-800 shrink-0 overflow-x-auto">
                     <button onclick="switchTab('general')" id="tab-general" class="px-4 py-2 text-xs font-semibold rounded-xl text-left transition bg-slate-800 text-white cursor-pointer">General</button>
                     <button onclick="switchTab('timers')" id="tab-timers" class="px-4 py-2 text-xs font-semibold rounded-xl text-left transition text-slate-400 hover:text-white cursor-pointer">Timers</button>
                     <button onclick="switchTab('sounds')" id="tab-sounds" class="px-4 py-2 text-xs font-semibold rounded-xl text-left transition text-slate-400 hover:text-white cursor-pointer">Sounds</button>
                 </div>
 
-                <!-- Tab Contents -->
                 <div class="p-6 flex-1 overflow-y-auto space-y-6">
-                    
-                    <!-- 1. GENERAL TAB -->
+                    <!-- General Tab -->
                     <div id="content-general" class="space-y-4">
                         <div>
                             <label class="block text-xs font-semibold text-slate-400 mb-2">Pilih Tema Tampilan</label>
@@ -110,7 +114,7 @@
                         </div>
                     </div>
 
-                    <!-- 2. TIMERS TAB -->
+                    <!-- Timers Tab -->
                     <div id="content-timers" class="space-y-4 hidden">
                         <div class="grid grid-cols-3 gap-3">
                             <div>
@@ -131,7 +135,7 @@
                         </div>
                     </div>
 
-                    <!-- 3. SOUNDS TAB -->
+                    <!-- Sounds Tab -->
                     <div id="content-sounds" class="space-y-4 hidden">
                         <div>
                             <label class="block text-xs font-semibold text-slate-400 mb-2">Suara Alarm</label>
@@ -149,7 +153,6 @@
                             <input type="range" id="inputVolume" min="0" max="100" value="80" oninput="document.getElementById('volLabel').innerText=this.value" class="w-full accent-indigo-500 cursor-pointer">
                         </div>
                     </div>
-
                 </div>
             </div>
 
@@ -161,13 +164,11 @@
                     <button onclick="saveSettings()" class="bg-white hover:bg-slate-100 text-slate-900 text-xs font-bold px-5 py-2.5 rounded-xl transition cursor-pointer shadow">Save changes</button>
                 </div>
             </div>
-
         </div>
     </div>
 
     <!-- JAVASCRIPT LOGIC -->
     <script>
-        // Konfigurasi Default & State
         let settings = JSON.parse(localStorage.getItem('pomodoro_settings')) || {
             pomodoroTime: 25,
             shortBreakTime: 5,
@@ -177,17 +178,16 @@
             volume: 80
         };
 
-        let currentMode = 'pomodoro'; // pomodoro, short, long
+        let currentMode = 'pomodoro';
         let timeLeft = settings.pomodoroTime * 60;
         let timerId = null;
         let isRunning = false;
-        let wakeLock = null; // Wake Lock API untuk Anti-Sleep
+        let wakeLock = null;
 
-        // Inisialisasi Tema & Durasi saat dimuat
         applyTheme(settings.theme);
         resetTimer();
 
-        // --- WAKE LOCK API (ANTI-SLEEP) ---
+        // WAKE LOCK API (ANTI-SLEEP)
         async function requestWakeLock() {
             if ('wakeLock' in navigator) {
                 try {
@@ -197,7 +197,7 @@
                         document.getElementById('wakeLockStatus').classList.add('hidden');
                     });
                 } catch (err) {
-                    console.error(`${err.name}, ${err.message}`);
+                    console.error(err);
                 }
             }
         }
@@ -211,7 +211,7 @@
             }
         }
 
-        // --- AUDIO / SOUND ENGINE ---
+        // AUDIO ENGINE
         function playSound() {
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -223,7 +223,7 @@
                 if (settings.soundType === 'bell') {
                     const osc = audioCtx.createOscillator();
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
                     osc.connect(gainNode);
                     osc.start();
                     osc.stop(audioCtx.currentTime + 1.2);
@@ -234,27 +234,25 @@
                     osc.connect(gainNode);
                     osc.start();
                     osc.stop(audioCtx.currentTime + 0.3);
-                } else { // chime
+                } else {
                     const osc1 = audioCtx.createOscillator();
                     const osc2 = audioCtx.createOscillator();
                     osc1.type = 'sine'; osc2.type = 'triangle';
-                    osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
-                    osc2.frequency.setValueAtTime(659.25, audioCtx.currentTime); // E5
+                    osc1.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                    osc2.frequency.setValueAtTime(659.25, audioCtx.currentTime);
                     osc1.connect(gainNode); osc2.connect(gainNode);
                     osc1.start(); osc2.start();
                     osc1.stop(audioCtx.currentTime + 1.0);
                     osc2.stop(audioCtx.currentTime + 1.0);
                 }
             } catch (e) {
-                console.log('Audio error:', e);
+                console.log(e);
             }
         }
 
-        function testSound() {
-            playSound();
-        }
+        function testSound() { playSound(); }
 
-        // --- TIMER LOGIC ---
+        // TIMER LOGIC
         function switchMode(mode) {
             clearInterval(timerId);
             isRunning = false;
@@ -262,7 +260,6 @@
             document.getElementById('startPauseBtn').innerText = 'mulai';
             releaseWakeLock();
 
-            // Styling tombol mode
             ['pomodoro', 'short', 'long'].forEach(m => {
                 const btn = document.getElementById(`btn-${m}`);
                 if(m === mode) {
@@ -302,7 +299,7 @@
                 }
                 isRunning = true;
                 btn.innerText = 'jeda';
-                requestWakeLock(); // Aktifkan anti-sleep
+                requestWakeLock();
 
                 timerId = setInterval(() => {
                     if (timeLeft > 0) {
@@ -328,7 +325,7 @@
             switchMode(currentMode);
         }
 
-        // --- THEME ENGINE ---
+        // THEME ENGINE
         function applyTheme(theme) {
             const body = document.getElementById('bodyBg');
             if (theme === 'seoul') {
@@ -346,16 +343,39 @@
             }
         }
 
-        // --- FULLSCREEN ---
+        // FULLSCREEN / ZEN MODE (SUPPORT iPHONE / SAFARI)
         function toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => alert(err.message));
-            } else {
+            // Coba standar browser PC/Android dulu
+            if (document.fullscreenElement || document.webkitFullscreenElement) {
                 if (document.exitFullscreen) document.exitFullscreen();
+                else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+                document.body.classList.remove('zen-mode');
+                document.getElementById('exitZenBtn').classList.add('hidden');
+            } else {
+                if (document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(() => activateZenMode());
+                } else if (document.documentElement.webkitRequestFullscreen) {
+                    document.documentElement.webkitRequestFullscreen();
+                } else {
+                    activateZenMode(); // Fallback otomatis untuk iPhone Safari
+                }
+                document.body.classList.add('zen-mode');
+                document.getElementById('exitZenBtn').classList.remove('hidden');
             }
         }
 
-        // --- MODAL SETTINGS & TABS ---
+        function activateZenMode() {
+            // Mode Zen khusus iPhone (menyembunyikan header dan footer secara bersih)
+            if (document.body.classList.contains('zen-mode')) {
+                document.body.classList.remove('zen-mode');
+                document.getElementById('exitZenBtn').classList.add('hidden');
+            } else {
+                document.body.classList.add('zen-mode');
+                document.getElementById('exitZenBtn').classList.remove('hidden');
+            }
+        }
+
+        // MODAL SETTINGS & TABS
         function openSettings() {
             document.getElementById('selectTheme').value = settings.theme;
             document.getElementById('inputPomodoro').value = settings.pomodoroTime;
@@ -368,9 +388,7 @@
             document.getElementById('settingsModal').classList.remove('hidden');
         }
 
-        function closeSettings() {
-            document.getElementById('settingsModal').classList.add('hidden');
-        }
+        function closeSettings() { document.getElementById('settingsModal').classList.add('hidden'); }
 
         function switchTab(tabName) {
             ['general', 'timers', 'sounds'].forEach(t => {
